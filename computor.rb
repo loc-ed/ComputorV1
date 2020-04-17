@@ -110,14 +110,17 @@ end
 
 
 #entry point of programme
-if ARGV.length != 1
+if ARGV.length > 1
     puts "Too many arguments"
+    exit
+elsif ARGV.length < 1
+    puts "No auguments"
     exit
 end
 
 terms = ARGV[0].split(/(?=[-+=])\s*/)
 reduced(terms)
-# puts terms
+puts terms
 
 # print "Reduced form: "
 # terms.each { |term|
