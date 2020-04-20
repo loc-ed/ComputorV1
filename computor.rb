@@ -1,5 +1,3 @@
-#methods (functions)
-
 def quadratic(terms)
 
     a = 0
@@ -10,70 +8,165 @@ def quadratic(terms)
     d2.each { |i|
         i.slice! " * x^2"
         i.slice! " "
-        a = a + i.to_i
+        a = (a + i.to_f).round(2)
     }
 
     d1 = terms.select{ |item| item.include?("x^1")}
     d1.each { |j|
         j.slice! " * x^1"
         j.slice! " "
-        b = b + j.to_i
+        b = (b + j.to_f).round(2)
     }
     
     d0 = terms.select{ |item| item.include?("x^0")}
     d0.each { |k|
         k.slice! " * x^0"
         k.slice! " "
-        c = c + k.to_i
+        c = (c + k.to_f).round(2)
     }
+
+    if b > 0 && c > 0
+        puts "Reduced form : " + a.to_s + " * x^2  + " + b.to_s + " * x^1  + " + c.to_s + " * x^0 = 0"
+    elsif b > 0
+        puts "Reduced form : " + a.to_s + " * x^2  + " + b.to_s + " * x^1 " + c.to_s + " * x^0 = 0"
+    elsif c > 0
+        puts "Reduced form : " + a.to_s + " * x^2   " + b.to_s + " * x^1  + " + c.to_s + " * x^0 = 0"
+    end
+    
     discriminant = (b*b) - (4*a*c)
-    if discriminant >= 0
+    if discriminant > 0
         if a != 0 && b != 0 && c != 0
             puts "Discriminant in strictly posistive, the two solutions are :"
             x1 = (-b + Math.sqrt(discriminant))/(2*a)
             x2 = (-b - Math.sqrt(discriminant))/(2*a)
-            puts x1
-            puts x2
-        else 
-            puts "Discriminant is postive with only one solution :"
-            x1 = (-b + Math.sqrt(discriminant))/(2*a)
-            x2 = (-b - Math.sqrt(discriminant))/(2*a)
-            if x1 == 0
-                puts x2
-            else 
-                puts x1
-            end
+            puts x1.round(2)
+            puts x2.round(2)
         end
-        
+    elsif discriminant == 0
+        puts "Discriminant is postive with only one solution :"
+        x1 = (-b + Math.sqrt(discriminant))/(2*a)
+        x2 = (-b - Math.sqrt(discriminant))/(2*a)
+        if x1 == 0
+            puts x2.round(2)
+        else 
+            puts x1.round(2)
+        end 
     else 
-        puts "Discriminant is negative with complex solutions"
+        x1 = (-b/(2*a)).round(2)
+        x2 =  (Math.sqrt(discriminant * -1)/(2*a)).round(2)
+        puts "Discriminant is negative with complex solutions :"
+        puts x1.to_s  + " + "  + x2.to_s  + " i "
+        puts x1.to_s  + " - "  + x2.to_s  + " i "
     end
 end
 
 def linear(terms)
-    puts "Polynomial degree: 1"
+
+    a = 0
+    b = 0
+    solution = 0
+    
+    d1 = terms.select{ |item| item.include?("x^1")}
+    d1.each { |j|
+        j.slice! " * x^1"
+        j.slice! " "
+        a = (a + j.to_f).round(2)
+    }
+    
+    d0 = terms.select{ |item| item.include?("x^0")}
+    d0.each { |k|
+        k.slice! " * x^0"
+        k.slice! " "
+        b = (b + k.to_f).round(2)
+    }
+
+    if a != 0 && b < 0
+        puts "Reduced form : " + a.to_s + " * x^1 " + b.to_s + " * x^0 = 0"
+    elsif a != 0 &&  b > 0
+        puts "Reduced form : " + a.to_s + " * x^1  + " + b.to_s + " * x^0 = 0"
+    end
+
+    if b < 0
+        solution = ((-1 * b)/a).round(2)
+    else
+        solution = ((b/a)).round(2)
+    end
+    puts "The solution is : #{solution}"
+
 end
 
-def reduced(terms)
+def sort(terms)
 
     highest_degree = 0
     term_count = terms.length
+    counter = 0
 
-    if (terms.last != "= 0")
-        if terms.last.include?("-")
-            placeholder  = terms.last
-            placeholder = placeholder.gsub("-", "+")
-            terms[term_count - 2] = placeholder
-            terms[term_count - 1] = " = 0"
-        else
+    terms.each { |k|
+        if k.include?("=")
+            break
+        else 
+            counter += 1
+        end
+    }
+    diff = term_count - counter
+    if diff < counter
+
+        while diff != 0
+
             placeholder = terms.last
-            placeholder = placeholder.gsub("=", "-")
+            if (placeholder != "= 0")
+                
+                if placeholder.include?("=")
+                    if placeholder.include?("-")
+                        placeholder = placeholder.slice! "= ".gsub("-", "+")
+                    else
+                        placeholder = placeholder.gsub("=", "-")
+                    end
+                elsif terms.last.include?("-") 
+                    placeholder = placeholder.gsub("-", "+")
+                elsif terms.last.include?("+") 
+                    placeholder = placeholder.gsub("+", "-")
+                end
+
+                i = term_count - 1
+                while i >= 1
+                    terms[i] = terms[i - 1]
+                    i -= 1
+                end
+            end
+            
+            terms[0] = placeholder
+            diff -= 1
+
+        end
+
+    #if there are more terms on the RHS
+    else
+        while counter != 0
+            placeholder = terms.first
+            if placeholder.include?("-")
+                placeholder = placeholder.gsub("-", "+")
+            else 
+                placeholder = "- " +  placeholder
+            end
+
+            for i in 0..(term_count - 2)
+                terms[i] = terms[i + 1]
+            end
+
             terms[term_count - 1] = placeholder
-            terms.push(" = 0")
+            counter -= 1
+        end
+
+        placeholder = terms.first
+        if placeholder.include?("=")
+            
+            placeholder = placeholder.gsub("= ", '')
+            terms[0] = placeholder
         end
     end
-  
-    # test = terms.select{ |item| !item.include?("x^2")  && !item.include?("x^1") && !item.include?("x^0") && !item.include?("= 0")}
+
+    # get the degree
     terms.each { |i|
         grab_deg = i.scan(/\d+/)
         to_degree = grab_deg.last.to_i
@@ -81,20 +174,6 @@ def reduced(terms)
             highest_degree = to_degree
         end  
     }
-
-    # output the reduced form
-    x = highest_degree
-    while x >= 0
-        sym = terms.select{ |item| item.scan(/\d+/).last.to_i == x}
-        sym.each { |j|
-            j.slice! " "
-            puts j
-        }
-        x -= 1
-    end
-    # terms.each { |j|
-    #     x = highest_degree
-    # }
 
     puts "Polynomial Degree: #{highest_degree}"
     if highest_degree == 2
@@ -106,9 +185,6 @@ def reduced(terms)
     end
 end
 
-
-
-
 #entry point of programme
 if ARGV.length > 1
     puts "Too many arguments"
@@ -119,22 +195,15 @@ elsif ARGV.length < 1
 end
 
 terms = ARGV[0].split(/(?=[-+=])\s*/)
-reduced(terms)
-puts terms
 
-# print "Reduced form: "
-# terms.each { |term|
-#     print term
-#     if term == terms.last
-#     print "\n"
-#     end
-# }
-
-
-#finding the solution 
-# terms.each { |term|
-#     if term.include?("x^2")
-#         quadratic(terms)
-#         break
-#     end
-# }
+if terms.length == 2
+    x = terms.last.gsub("= ", '')
+    y = terms.first
+    if x == y
+        puts "There is no solution / Solution is all real numbers"
+    else 
+        puts "Invalid equation"
+    end
+else
+    sort(terms)
+end
